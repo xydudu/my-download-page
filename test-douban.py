@@ -1,8 +1,10 @@
 # encoding: UTF-8
 
-import urllib, re, zipfile, os, time
+import urllib2, re, time
 
 from google.appengine.ext import db
+from google.appengine.api import memcache
+
 from douban.service import DoubanService
 from douban.client import OAuthClient
 
@@ -32,7 +34,7 @@ class movies():
     
     def dygod(self):
         url = 'http://www.dygod.org/html/gndy/dyzz/index.html'
-        req = urllib.urlopen(url)
+        req = urllib2.urlopen(url)
         #names = re.findall(r'<a\ href\=\".*"\ class\=\"ulink\".*《(.*)》.*BD.*>', req.read())
         regex = r'<a\ href\=\"(.*)"\ class\=\"ulink\">(.*).*?BD.*>'
         names = re.findall(regex, req.read())
@@ -41,7 +43,7 @@ class movies():
 
     def getDownloadLinks(self, path):
         url = 'http://www.dygod.org%s' % path 
-        response = urllib.urlopen(url)
+        response = urllib2.urlopen(url)
         html = response.read()
         links = re.findall(r'>(ftp\:\/\/.*\.(?:rmvb|mkv))<', html)
         return links[0].decode('gbk').encode('utf-8')
@@ -83,16 +85,26 @@ class movies():
         
     def showHTML(self):
         today = time.strftime('%Y%m%d')
-        filename = r'backup'+ os.sep + today + '.data'
-            
+        
+        html = memcache.get(today)
+        if html is not None:
+            print html
+        else:
+            html = self.getHtmlFromData(today)
+            if not memcache.add(today, html, 36000):
+                logging.error("Memcache set failed.")
+            print html
+    
+    def getHtmlFromData(self, today):
+        
         html = FileData.all().filter("id = ", today).fetch(1)
         if len(html) > 0:
-            print html[0].content
+            return html[0].html
         else:
             content = self.getHTML()
             item = FileData(html = content, id = today)
             db.put(item)
-            print content
+            return content
 
 if __name__ == '__main__':
     m = movies()
