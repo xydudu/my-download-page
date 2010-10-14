@@ -2,6 +2,7 @@
 
 import urllib, re, zipfile, os, time
 
+from google.appengine.ext import webapp
 from google.appengine.ext import db
 from douban.service import DoubanService
 from douban.client import OAuthClient
@@ -85,7 +86,8 @@ class movies():
         today = time.strftime('%Y%m%d')
         filename = r'backup'+ os.sep + today + '.data'
             
-        html = FileData.all().filter("id = ", today).fetch(1)
+        html = FileData.all().filter("id =", today).fetch(1)
+        print len(html)
         if len(html) > 0:
             print html[0].content
         else:
