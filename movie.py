@@ -69,7 +69,14 @@ class Movie():
         
     def hasData(self, id):
          return len(db.GqlQuery("SELECT * FROM MovieData WHERE id = :1", id).fetch(1)) > 0
-          
+
+    def getListFormData(self):
+        query = memcache.get('movielist')
+        if query is None:
+            sql = 'SELECT * FROM MovieData ORDER BY createTime DESC'
+            query = db.GqlQuery(sql).fetch(20)
+            memcache.add('movielist', query, 3600)
+        return query
 
     def getDoubanData(self, keyword):
         keyword = keyword.encode('utf-8')
@@ -99,4 +106,5 @@ class Movie():
 if __name__ == '__main__':
     M = Movie()
     result = M.getSource()
-    M.saveToData(result[0])
+    for i in result:
+        M.saveToData(i)
