@@ -34,7 +34,8 @@ class Movie():
         soup = BeautifulSoup(html)
         tds = soup('td', attrs={'width': '85%', 'height': '22', 'class': 'inddline'})
         o = [td.findAll('a')[1] for td in tds]
-        o = [(self.getID(a['href']), self.getName(a.string), a['href']) for a in o if re.search('BD', a.string) is not None]
+        #o = [(self.getID(a['href']), self.getName(a.string), a['href']) for a in o if re.search('BD', a.string) is not None]
+        o = [(self.getID(a['href']), self.getName(a.string), a['href']) for a in o if re.search('1024', a.string) is not None]
         #for a in o:
         #    print a[1].encode('utf-8')
         return o
